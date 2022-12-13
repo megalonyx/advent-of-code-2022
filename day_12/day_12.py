@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from collections import deque
+
 raw_data = []
 heightmap = []
 size_x = 0
@@ -8,7 +10,9 @@ start_x = 0
 start_y = 0
 end_x = 0
 end_y = 0
-lowest_solution = 0
+visited = set()
+distances = []
+myq = deque()
 
 def parse_line(line):
     global raw_data
@@ -18,6 +22,13 @@ def parse_file(filename):
     with open(filename, 'r') as f:
         for line in f:
             parse_line(line.strip('\n'))
+
+def init_distances():
+    global distances
+    leny = len(raw_data)
+    lenx = len(raw_data[0])
+    maxval = lenx * leny
+    distances = [ [maxval for _ in range(leny)] for _ in range(lenx)]
 
 def build_heightmap():
     global heightmap, size_x, size_y, start_x, start_y, end_x, end_y, lowest_solution
@@ -48,6 +59,12 @@ def print_heightmap():
             print(chr(heightmap[x][y]+ord('a')), end='')
         print()
 
+def print_distances():
+    for y in range(size_y):
+        for x in range(size_x):
+            print(chr(distances[x][y]+ord('a')), end='')
+        print()
+
 def neighbours(point):
     x, y = point
     ns = []
@@ -71,13 +88,32 @@ def move(point, count, visited):
         if not n in visited:
             move(n, count+1, visited.copy())
 
+def search():
+    global myq, visited, distances
+    p = myq.popleft()
+    x, y = p
+    dist = distances[x][y]
+    print(dist)
+    visited.add(p)
+    for n in neighbours(p):
+        if not n in visited:
+            x, y = n
+            if distances[x][y] > dist + 1:
+                distances[x][y] = dist + 1
+                myq.append( n )
+
 def main():
-    parse_file('test.txt')
-#    parse_file('input.txt')
+    global myq
+#    parse_file('test.txt')
+    parse_file('input.txt')
     build_heightmap()
+    init_distances()
 #    print_heightmap()
-    move((start_x, start_y), 0, set())
-    print(lowest_solution)
+    distances[start_x][start_y] = 0
+    myq.append( (start_x, start_y) )
+    while len(myq) > 0:
+        search()
+    print(distances[end_x][end_y])
 
 if __name__ == '__main__':
     main()
