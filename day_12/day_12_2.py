@@ -13,6 +13,7 @@ end_y = 0
 visited = set()
 distances = []
 myq = deque()
+solutions = []
 
 def parse_line(line):
     global raw_data
@@ -71,29 +72,18 @@ def neighbours(point):
     for (dx, dy) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
         if 0 <= x + dx < size_x and \
            0 <= y + dy < size_y:
-               if heightmap[x+dx][y+dy] <= heightmap[x][y] + 1:
+               if heightmap[x+dx][y+dy] >= heightmap[x][y] - 1:
                    ns.append( (x+dx, y+dy) )
     return ns
-
-def move(point, count, visited):
-    global lowest_solution
-    if count >= lowest_solution:
-        return   # there is already a better way
-    x, y = point
-    visited.add( (x, y) )
-    if x == end_x and y == end_y:
-        lowest_solution = min(count, lowest_solution)
-        return
-    for n in neighbours(point):
-        if not n in visited:
-            move(n, count+1, visited.copy())
 
 def search():
     global myq, visited, distances
     p = myq.popleft()
     x, y = p
     dist = distances[x][y]
-    print(dist)
+    if heightmap[x][y] == 0:
+        solutions.append(dist)
+#    print(dist)
     visited.add(p)
     for n in neighbours(p):
         if not n in visited:
@@ -109,11 +99,11 @@ def main():
     build_heightmap()
     init_distances()
 #    print_heightmap()
-    distances[start_x][start_y] = 0
-    myq.append( (start_x, start_y) )
+    distances[end_x][end_y] = 0
+    myq.append( (end_x, end_y) )
     while len(myq) > 0:
         search()
-    print(distances[end_x][end_y])
+    print(sorted(solutions)[0])
 
 if __name__ == '__main__':
     main()
